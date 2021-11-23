@@ -9,9 +9,7 @@ public class ReceiveM extends Thread{
     }
     @Override
     public void run() {
-        while (!client.getSocket().isClosed()){
-            System.out.println("socket是否关闭："+client.getSocket().isClosed());
+        while (true){
             this.client.receiveMessage();}
-        System.out.println("客户端断开连接");
     }
 }

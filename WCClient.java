@@ -27,7 +27,7 @@ public class WCClient {
     }
 
     public final void sendMessage(String str) throws IOException {
-        pwriter.println(str+"    ----来自用户:"+id);
+        pwriter.println(str);
         pwriter.flush();
     }
 
@@ -59,4 +59,5 @@ public class WCClient {
     public BufferedReader getBufferedReader() {
         return bufferedReader;
     }
+    public String getId(){return id;}
 }
