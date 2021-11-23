@@ -1,4 +1,4 @@
-package WirChat;
+package WirChat.WirChatClient;
 
 
 public class ReceiveM extends Thread{

@@ -1,4 +1,4 @@
-package WirChat;
+package WirChat.WirChatClient;
 
 
 import java.io.IOException;

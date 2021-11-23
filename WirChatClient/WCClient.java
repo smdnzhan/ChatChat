@@ -1,4 +1,4 @@
-package WirChat;
+package WirChat.WirChatClient;
 
 import java.io.*;
 import java.net.Socket;
@@ -34,8 +34,9 @@ public class WCClient {
     final String receiveMessage() {
         try {
             String str = bufferedReader.readLine();
+            if(str!=null){
             System.out.println("收到服务器信息："+str);
-            return str;
+            return str;}
         } catch (IOException e) {
             e.printStackTrace();
         }

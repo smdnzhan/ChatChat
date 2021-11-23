@@ -1,4 +1,4 @@
-package WirChat;
+package WirChat.WirChatSever;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -102,8 +102,8 @@ public class WCServer {
                         String[] s = str.split("/");
                         String target = s[1];
                         String content = s[2];
-                        System.out.println(s[1]);
-                        System.out.println(s[2]);
+                        //System.out.println(s[1]);
+                        //System.out.println(s[2]);
                         sendMessageToPrivate(content,target);
                     }else {
                     sendMessageToAllClient(str);
