@@ -4,6 +4,6 @@ import WirChat.WirChatClient.WCClient;
 
 public class test {
     public static void main(String[] args) throws Exception {
-        WCClient client = new WCClient("127.0.0.1",8888,"小红");
+        WCClient client = new WCClient("127.0.0.1",8888);
     }
 }

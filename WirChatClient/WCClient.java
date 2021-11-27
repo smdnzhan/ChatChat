@@ -8,22 +8,24 @@ public class WCClient {
     private BufferedReader bufferedReader; // 字节流读取套接字输入流
     private PrintWriter pwriter; // 字节流写入套接字输出流
     private String id;
+    private String name;
+    private String password;
+    private SendM sendM;
+    private ReceiveM receiveM;
     //构造方法
-    WCClient(String string,int port,String name) throws Exception{
+    public WCClient(String string, int port) throws Exception{
         socket = new Socket(string,port);
         bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         pwriter = new PrintWriter(new BufferedOutputStream(socket.getOutputStream()));
-        this.id = name;
-        SendM s = new SendM(this);
-        s.start();
-        ReceiveM r = new ReceiveM(this);
-        r.start();
+        sendM = new SendM(this);
+        //sendM .start();
+        receiveM = new ReceiveM(this);
+        //receiveM.start();
 
     }
 
     public static void main(String[] args) throws Exception {
-        WCClient client = new WCClient("127.0.0.1",8888,"小明");
-
+        WCClient client = new WCClient("127.0.0.1",8888);
     }
 
     public final void sendMessage(String str) throws IOException {
@@ -61,4 +63,12 @@ public class WCClient {
         return bufferedReader;
     }
     public String getId(){return id;}
+    public void setId(String id){this.id = id;}
+    public void setPassword(String password){this.password = password;}
+    public String getPassword(){return password;}
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public SendM getSendM(){return sendM;}
+    public ReceiveM getReceiveM(){return receiveM;}
 }
