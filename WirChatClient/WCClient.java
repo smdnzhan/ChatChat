@@ -2,6 +2,7 @@ package WirChat.WirChatClient;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.LinkedList;
 
 public class WCClient {
     private Socket socket; // 客户端套接字
@@ -12,6 +13,9 @@ public class WCClient {
     private String password;
     private SendM sendM;
     private ReceiveM receiveM;
+    private ObjectOutputStream oos;
+    private ObjectInputStream ois;
+
     //构造方法
     public WCClient(String string, int port) throws Exception{
         socket = new Socket(string,port);
@@ -28,11 +32,19 @@ public class WCClient {
         WCClient client = new WCClient("127.0.0.1",8888);
     }
 
+
     public final void sendMessage(String str) throws IOException {
         pwriter.println(str);
         pwriter.flush();
     }
 
+    public LinkedList<String> receiveUserlist() throws IOException, ClassNotFoundException {
+        oos = new ObjectOutputStream(socket.getOutputStream());
+        ois = new ObjectInputStream(socket.getInputStream());
+        LinkedList<String> list ;
+        list = (LinkedList<String>) ois.readObject();
+        return list;
+    }
     final String receiveMessage() {
         try {
             String str = bufferedReader.readLine();

@@ -7,14 +7,11 @@ import java.util.LinkedList;
 
 public class ClientListener implements ActionListener {
     private Login login;
-    private LinkedList<String> demolist = new LinkedList<>();
+    private WCClient client;
+    private LinkedList<String> alluserlist;
     //登入界面
     public ClientListener(Login login) {
         this.login = login;
-        demolist.add("大熊");
-        demolist.add("胖虎");
-        demolist.add("静香");
-        demolist.add("小夫");
     }
 
     @Override
@@ -24,16 +21,12 @@ public class ClientListener implements ActionListener {
             login.register();
         }
         else if("登录".equals(name)) {
-            WCClient client = null;
             try {
                 client = new WCClient("127.0.0.1",8888);
                 String id = login.getLogin_id().getText();
                 String password = login.getLogin_password().getText();
                 //包装成识别格式
                 String message = "LOGIN/"+id+"/"+password;
-                Thread.sleep(100);
-                client.getSendM().start();
-                client.getReceiveM().start();
                 try {
                     client.sendMessage(message);
                 } catch (IOException ioException) {
@@ -43,12 +36,14 @@ public class ClientListener implements ActionListener {
                 //System.out.println(client.receiveMessage());
                 if (str.equals("登录失败")){ //??
                     login.loginFail();
-                    client.getSendM().stop();
-                    client.getReceiveM().stop();
                 }if (str.equals("登录成功！")){
                     System.out.println("在执行登录成功语句");
                     login.loginOK();
                     login.menu();
+                    alluserlist = client.receiveUserlist();
+                    for (String s: alluserlist) {
+                        System.out.println(s);
+                    }
                 }
             } catch (Exception exception) {
                 exception.printStackTrace();
@@ -67,8 +62,6 @@ public class ClientListener implements ActionListener {
                 client.setId(id);
                 client.setName(username);
                 client.setPassword(password);
-                client.getSendM().start();
-                client.getReceiveM().start();
                 try {
                     client.sendMessage(message);
                 } catch (IOException ioException) {
@@ -77,24 +70,17 @@ public class ClientListener implements ActionListener {
                 //注册流程结束 就关闭Socket
                 if (client.receiveMessage().startsWith("该账号已被注册")){ //??
                     login.registerFail();
-                    client.getSendM().stop();
-                    client.getReceiveM().stop();
                     client.close();
                 }else {login.registerOk();
-                    client.getSendM().stop();
-                    client.getReceiveM().stop();
                         client.close();
                 }
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
 
-
-
-
         }
         else if("公共聊天室".equals(name)){
-            login.publicChat(demolist);
+            login.publicChat(alluserlist);
         }
     }
 }

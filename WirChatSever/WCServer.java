@@ -1,11 +1,13 @@
 package WirChat.WirChatSever;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -13,10 +15,18 @@ public class WCServer {
     private ServerSocket serverSocket;
     private LinkedList<Socket> socketlist;
     private LinkedList<String> idlist;
-    private HashMap<Socket,Thread> severThreadslist;
+    private LinkedList<String> namelist;
+    private HashMap<Socket,Thread> serverThreadslist;
     private HashMap<String,Socket> userlist; //id - socket  在线
-    private HashMap<String,String> namelist; //name -id
-    private HashMap<String,String> passwordlist; //id-password
+    private HashMap<String,String> idAndPsswrd;
+    private HashMap<String,String> NmAndId;
+
+    private ObjectInputStream ois;
+    private ObjectOutputStream oos;
+
+    private Connection connection = null;
+    private PreparedStatement prestatement = null;
+    private ResultSet resultSet = null;
     public static void main(String[] args) throws IOException {
         WCServer server = new WCServer();
         server.startService();
@@ -30,12 +40,9 @@ public class WCServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        severThreadslist = new HashMap<>();
+        serverThreadslist = new HashMap<>();
         socketlist = new LinkedList<>();
         userlist = new HashMap<>();
-        namelist = new HashMap<>();
-        passwordlist = new HashMap<>();
-        idlist = new LinkedList<>();
     }
 
     private void startService() throws IOException {
@@ -43,7 +50,7 @@ public class WCServer {
             Socket s = serverSocket.accept(); // 获得一个客户端连接 就启动一个新服务线程
             socketlist.add(s);
             Thread t = new Thread(new SeverThread(s));
-            severThreadslist.put(s,t);
+            serverThreadslist.put(s,t);
             t.start();
         }
     }
@@ -61,7 +68,7 @@ public class WCServer {
                 pw.flush();
             }
         }
-
+        //给在线的人发
         void sendMessageToPrivate(String message,String target) throws IOException {
             if (userlist.get(target)==null){
                 System.out.println("该用户不存在");
@@ -72,14 +79,145 @@ public class WCServer {
                 pw.flush();
             }
         }
+        void sendObject(Object o) throws IOException {
+            for (Socket s:socketlist){
+                ois = new ObjectInputStream(s.getInputStream());
+                oos = new ObjectOutputStream(s.getOutputStream());
+                System.out.println("列表发送成功");
+                oos.writeObject(o);
+                oos.flush();
+            }
+        }
+
+
         void shutdown() throws IOException {
             socket.close();
             socketlist.remove(socket);
-            Thread temp = severThreadslist.get(socket);
-            temp.stop();
-            severThreadslist.remove(socket);
+            serverThreadslist.remove(socket);
             System.out.println("目前socket个数:"+socketlist.size());
-            return;
+            System.out.println("目前serverSocket个数："+serverThreadslist.size());
+
+        }
+
+        HashMap<String,String> queryIdAndPsswrd(){
+            HashMap<String,String>  map =null;
+            try {
+                connection = JdbcUtils.getConnection();
+                String sql = "SELECT id,PASSWORD FROM ACCOUNT";
+                prestatement = connection.prepareStatement(sql);
+                resultSet = prestatement.executeQuery();
+                map = new HashMap<>();
+                while (resultSet.next()){
+                    map.put(resultSet.getString(1),resultSet.getString(2));
+                }
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }finally {
+                try {
+                    JdbcUtils.release(connection,prestatement,resultSet);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return map;
+        }
+        HashMap<String,String> queryNmandId(){
+            HashMap<String,String>  map =null;
+            try {
+                connection = JdbcUtils.getConnection();
+                String sql = "SELECT id,NAME FROM ACCOUNT";
+                prestatement = connection.prepareStatement(sql);
+                resultSet = prestatement.executeQuery();
+                map = new HashMap<>();
+                while (resultSet.next()){
+                    map.put(resultSet.getString(2),resultSet.getString(1));
+                }
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }finally {
+                try {
+                    JdbcUtils.release(connection,prestatement,resultSet);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return map;
+        }
+        LinkedList<String> queryIds(){
+            LinkedList<String> list =null;
+            try {
+                connection = JdbcUtils.getConnection();
+                String sql = "SELECT id FROM ACCOUNT";
+                prestatement = connection.prepareStatement(sql);
+                resultSet = prestatement.executeQuery();
+                list = new LinkedList<>();
+                while (resultSet.next()){
+                    list.add(resultSet.getString(1));
+                }
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }finally {
+                try {
+                    JdbcUtils.release(connection,prestatement,resultSet);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return list;
+        }
+        LinkedList<String> queryNames(){
+            LinkedList<String> list =null;
+            try {
+                connection = JdbcUtils.getConnection();
+                String sql = "SELECT NAME FROM ACCOUNT";
+                prestatement = connection.prepareStatement(sql);
+                resultSet = prestatement.executeQuery();
+                list = new LinkedList<>();
+                while (resultSet.next()){
+                    list.add(resultSet.getString(1));
+                }
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }finally {
+                try {
+                    JdbcUtils.release(connection,prestatement,resultSet);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return list;
+        }
+
+
+        void addNewId(String id,String name,String password)  {
+            Connection connection = null;
+            PreparedStatement prestatement = null;
+            ResultSet resultSet = null;
+
+            try {
+                connection = JdbcUtils.getConnection();
+                String sql = "INSERT	INTO	ACCOUNT(id,`NAME`,`PASSWORD`) VALUES(?,?,?)";
+                //String sql2 = "DELETE FROM users where id = 4";
+                //预编译 不执行
+                prestatement = connection.prepareStatement(sql);
+                prestatement.setString(1,id);//id 给第一个id复制
+                prestatement.setString(2,name);
+                prestatement.setString(3,password);
+                int i = prestatement.executeUpdate();
+                if (i>0){
+                    System.out.println("更改成功");
+                }else {
+                    System.out.println("插入失败");
+                }
+            }
+            catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+            try {
+                JdbcUtils.release(connection,prestatement,resultSet);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         @Override
         public void run() {
@@ -95,6 +233,7 @@ public class WCServer {
                             String id = s[1];
                             String name = s[2];
                             String password = s[3];
+                            idlist = queryIds();
                             if (idlist.contains(id)) {
                                 userlist.put(id, socket);
                                 sendMessageToPrivate("该账号已被注册", id);
@@ -102,24 +241,24 @@ public class WCServer {
                                 shutdown();
                             } else {
                                 //userlist.put(id, socket);
-                                passwordlist.put(id, password);
-                                namelist.put(name, id);
-                                idlist.add(id);
+                                addNewId(id,name,password);
                                 System.out.println("有一个用户注册成功！");
                                 System.out.println("已注册用户数量:" + idlist.size());
-                                Thread.sleep(100);
                                 if (idlist.contains(id)) {
-                                    userlist.put(id, socket);
+                                    //userlist.put(id, socket);
                                     sendMessageToPrivate("注册成功！", id);
-                                    userlist.remove(id);
-                                    shutdown();
+                                    //userlist.remove(id);
+                                    //shutdown();
                                 }
                             }
                         } else if (str.startsWith("LOGIN")) {
                             String[] s = str.split("/");
                             String id = s[1];
                             String password = s[2];
-                            if (!idlist.contains(id) || !passwordlist.get(id).equals(password)) {
+                            idlist = queryIds();
+                            idAndPsswrd = queryIdAndPsswrd();
+                            namelist = queryNames();
+                            if (!idlist.contains(id) || !idAndPsswrd.get(id).equals(password)) {
                                 System.out.println("登录失败");
                                 userlist.put(id,socket);
                                 sendMessageToPrivate("登录失败", id);
@@ -128,6 +267,8 @@ public class WCServer {
                                 //Thread.sleep(100);
                                 userlist.put(id,socket);
                                 sendMessageToPrivate("登录成功！", id);
+                                sendObject(namelist);
+
                             }
                         }
                         //2.退出
@@ -137,9 +278,8 @@ public class WCServer {
                             // 服务器向所有客户端接口发出退出通知
                             sendMessageToAllClient("一个用户已退出聊天室");
                             //socket.close();
-                            severThreadslist.remove(socket);
+                            serverThreadslist.remove(socket);
                             System.out.println("断开连接");
-                            return;
                         }
                         //PRIVATE/NAME/CONTENT
                         else if (str.startsWith("PRIVATE/")) {
@@ -147,7 +287,8 @@ public class WCServer {
                             //根据target 再找id
                             String target = s[1];
                             String content = s[2];
-                            String id = namelist.get(target);
+                            NmAndId = queryNmandId();
+                            String id = NmAndId.get(target);
                             if (id == null) {
                                 System.out.println("找不到该用户");
                             } else {
@@ -160,13 +301,7 @@ public class WCServer {
                             System.out.println("服务器向客户端群发了：" + str);
                         }
                     }if (str==null){
-                        socket.close();
-                        socketlist.remove(socket);
-                        Thread temp = severThreadslist.get(socket);
-                        temp.stop();
-                        severThreadslist.remove(socket);
-                        System.out.println("目前socket个数:"+socketlist.size());
-                        return;
+                      System.out.println("目前socket个数:"+socketlist.size());
                     }
                 }
             } catch (Exception e) {

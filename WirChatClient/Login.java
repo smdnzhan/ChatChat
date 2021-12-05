@@ -131,7 +131,6 @@ public class Login {
     public void menu(){
         // 创建窗体对象
         javax.swing.JFrame jf = new javax.swing.JFrame();
-        action = new ClientListener(this);
         // 像素>分辨率
         jf.setSize(600, 800);
         jf.setTitle("菜单");
@@ -180,6 +179,7 @@ public class Login {
         FlowLayout flow = new FlowLayout(FlowLayout.CENTER,10,10);
         jf.setLayout(flow);
         Font f=new Font("宋体",Font.PLAIN,22);
+
         JTextArea jta=new JTextArea("聊天内容",25,35);
         jta.setLineWrap(true);    //设置文本域中的文本为自动换行
         jta.setForeground(Color.BLACK);    //设置组件的背景色
@@ -187,18 +187,18 @@ public class Login {
         jta.setBackground(Color.WHITE);    //设置按钮背景色
         jf.add(jta);
 
-        StringBuilder sbf = new StringBuilder();
-        for (String str:idlist) {
-            sbf.append(str).append("\n");
+        int len = idlist.size();
+        String[] sbf = new String[len];
+        for (int i= 0;i<len;i++) {
+            sbf[i] = idlist.get(i);
         }
-        JTextArea jta3=new JTextArea("在线用户",25,15);
-        jta3.setLineWrap(true);    //设置文本域中的文本为自动换行
-        jta3.setEditable(false);   //不可更改
-        jta3.setForeground(Color.BLACK);    //设置组件的背景色
-        jta3.setFont(new Font("楷体",Font.PLAIN,20));    //修改字体样式
-        jta3.setBackground(Color.WHITE);    //设置按钮背景色
-        jta3.setText(new String(sbf));
-        jf.add(jta3);
+
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setPreferredSize(new Dimension(200,600));
+        JList<String> list = new JList(sbf);
+        list.setFont(new Font("楷体",Font.PLAIN,20));
+        scrollPane.setViewportView(list);
+        jf.add(scrollPane);
 
 
         JButton jbu = new javax.swing.JButton("发送消息");
@@ -219,14 +219,15 @@ public class Login {
         jbu3.addActionListener(action);
         jf.add(jbu3);
 
-        JTextArea jta2=new JTextArea("请输入内容",10,50);
+
+        JTextArea jta2=new JTextArea(10,50);
+        JTextListener jtl = new JTextListener(jta2,"请输入内容");
         jta2.setLineWrap(true);    //设置文本域中的文本为自动换行
         jta2.setForeground(Color.BLACK);    //设置组件的背景色
         jta2.setFont(new Font("楷体",Font.PLAIN,20));    //修改字体样式
         jta2.setBackground(Color.WHITE);    //设置按钮背景色
+        jta2.addFocusListener(jtl);
         jf.add(jta2);
-
-
 
         // 设置退出进程
         jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -240,6 +241,11 @@ public class Login {
         Login lo = new Login();
         lo.showUI();
         //lo.menu();
+        LinkedList<String> list = new LinkedList<>();
+        list.add("1");
+        list.add("133");
+        list.add("1222");
+        //lo.publicChat(list);
 
     }
 
