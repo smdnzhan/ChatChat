@@ -165,6 +165,28 @@ public class WCServer {
             }
             return list;
         }
+        String idToName(String id){
+            String s = null;
+            try {
+                connection = JdbcUtils.getConnection();
+                String sql = "SELECT NAME FROM ACCOUNT WHERE id="+"'"+id+"'";
+                prestatement = connection.prepareStatement(sql);
+                resultSet = prestatement.executeQuery();
+
+                while (resultSet.next()){
+                   s=(resultSet.getString(1));
+                }
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }finally {
+                try {
+                    JdbcUtils.release(connection,prestatement,resultSet);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return s;
+        }
         LinkedList<String> queryNames(){
             LinkedList<String> list =null;
             try {
@@ -296,9 +318,13 @@ public class WCServer {
                                 //System.out.println(s[2]);
                                 sendMessageToPrivate(content, target);
                             }
-                        } else {
-                            sendMessageToAllClient(str);
-                            System.out.println("服务器向客户端群发了：" + str);
+                        } else if (str.startsWith("PUBLIC/")) {
+                            String[] s = str.split("/");
+                            String id = s[1];
+                            String content = s[2];
+                            String name = idToName(id);
+                            sendMessageToAllClient(name+"说："+content);
+                            System.out.println(id+" 群发消息：" + content);
                         }
                     }if (str==null){
                       System.out.println("目前socket个数:"+socketlist.size());

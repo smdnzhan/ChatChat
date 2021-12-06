@@ -1,6 +1,7 @@
 package WirChat.WirChatClient;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -12,6 +13,13 @@ public class Login {
     private JTextField registerpassword;
     private JTextField login_id;
     private JTextField login_password;
+
+
+    private JTextArea jta;
+
+
+
+    private JTextArea jta2;
     // 显示登录界面的方法
     public void showUI() {
         // 创建窗体对象
@@ -180,11 +188,12 @@ public class Login {
         jf.setLayout(flow);
         Font f=new Font("宋体",Font.PLAIN,22);
 
-        JTextArea jta=new JTextArea("聊天内容",25,35);
+        jta=new JTextArea(25,35);
         jta.setLineWrap(true);    //设置文本域中的文本为自动换行
         jta.setForeground(Color.BLACK);    //设置组件的背景色
         jta.setFont(new Font("楷体",Font.PLAIN,20));    //修改字体样式
         jta.setBackground(Color.WHITE);    //设置按钮背景色
+        jta.setEditable(false);
         jf.add(jta);
 
         int len = idlist.size();
@@ -196,6 +205,10 @@ public class Login {
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setPreferredSize(new Dimension(200,600));
         JList<String> list = new JList(sbf);
+        //ListSelectionListener lsl = new JListListener(list);
+        MyPopupMenu mpm = new MyPopupMenu();
+        MyMouseAdapter mma = new MyMouseAdapter(list,mpm.jpu);
+        list.addMouseListener(mma);
         list.setFont(new Font("楷体",Font.PLAIN,20));
         scrollPane.setViewportView(list);
         jf.add(scrollPane);
@@ -213,14 +226,14 @@ public class Login {
         jbu2.addActionListener(action);
         jf.add(jbu2);
 
-        JButton jbu3 = new javax.swing.JButton("清屏");
+        JButton jbu3 = new javax.swing.JButton("视频聊天");
         jbu3.setPreferredSize(new Dimension(150,50));
         jbu3.setFont(f);
         jbu3.addActionListener(action);
         jf.add(jbu3);
 
 
-        JTextArea jta2=new JTextArea(10,50);
+        jta2=new JTextArea(10,50);
         JTextListener jtl = new JTextListener(jta2,"请输入内容");
         jta2.setLineWrap(true);    //设置文本域中的文本为自动换行
         jta2.setForeground(Color.BLACK);    //设置组件的背景色
@@ -228,6 +241,7 @@ public class Login {
         jta2.setBackground(Color.WHITE);    //设置按钮背景色
         jta2.addFocusListener(jtl);
         jf.add(jta2);
+
 
         // 设置退出进程
         jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -264,5 +278,11 @@ public class Login {
     public JTextField getLogin_id() { return login_id; }
 
     public JTextField getLogin_password() { return login_password;}
+
+    public JTextArea getJta2() {
+        return jta2;
+    }
+
+    public JTextArea getJta() { return jta; }
 
 }

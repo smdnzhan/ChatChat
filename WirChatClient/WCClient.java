@@ -21,9 +21,9 @@ public class WCClient {
         socket = new Socket(string,port);
         bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         pwriter = new PrintWriter(new BufferedOutputStream(socket.getOutputStream()));
-        sendM = new SendM(this);
+        //sendM = new SendM(this);
         //sendM .start();
-        receiveM = new ReceiveM(this);
+        //receiveM = new ReceiveM(this);
         //receiveM.start();
 
     }
@@ -41,6 +41,7 @@ public class WCClient {
     public LinkedList<String> receiveUserlist() throws IOException, ClassNotFoundException {
         oos = new ObjectOutputStream(socket.getOutputStream());
         ois = new ObjectInputStream(socket.getInputStream());
+        System.out.println("客户端序列化流正常");
         LinkedList<String> list ;
         list = (LinkedList<String>) ois.readObject();
         return list;

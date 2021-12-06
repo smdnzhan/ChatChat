@@ -25,6 +25,7 @@ public class ClientListener implements ActionListener {
                 client = new WCClient("127.0.0.1",8888);
                 String id = login.getLogin_id().getText();
                 String password = login.getLogin_password().getText();
+
                 //包装成识别格式
                 String message = "LOGIN/"+id+"/"+password;
                 try {
@@ -38,6 +39,7 @@ public class ClientListener implements ActionListener {
                     login.loginFail();
                 }if (str.equals("登录成功！")){
                     System.out.println("在执行登录成功语句");
+                    client.setId(id);
                     login.loginOK();
                     login.menu();
                     alluserlist = client.receiveUserlist();
@@ -81,6 +83,18 @@ public class ClientListener implements ActionListener {
         }
         else if("公共聊天室".equals(name)){
             login.publicChat(alluserlist);
+            Thread t = new ReceiveM(client,login);
+            t.start();
+        }
+        else if("发送消息".equals(name)){
+            String text = login.getJta2().getText();
+            String message = "PUBLIC/"+client.getId()+"/"+text;
+            try {
+                client.sendMessage(message);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+            login.getJta2().setText("");
         }
     }
 }
