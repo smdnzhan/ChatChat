@@ -20,14 +20,16 @@ public class test1 {
         HashMap<String, String> map = null;
         try {
             connection = JdbcUtils.getConnection();
-            String sql = "SELECT id,PASSWORD FROM ACCOUNT";
+            String sql = "SELECT id,NAME FROM ACCOUNT ";
             prestatement = connection.prepareStatement(sql);
             resultSet = prestatement.executeQuery();
             map = new HashMap<>();
             while (resultSet.next()) {
                 System.out.println("索引1：" + resultSet.getObject(1));
                 System.out.println("索引2：" + resultSet.getObject(2));
+                map.put(resultSet.getString(2),resultSet.getString(1));
             }
+
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         } finally {
@@ -37,6 +39,7 @@ public class test1 {
                 e.printStackTrace();
             }
         }
+        System.out.println(map.get("小刚"));
     }
 }
 

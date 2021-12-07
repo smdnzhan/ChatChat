@@ -9,11 +9,17 @@ public class ClientListener implements ActionListener {
     private Login login;
     private WCClient client;
     private LinkedList<String> alluserlist;
+
+
+
+    private String talkto;
     //登入界面
     public ClientListener(Login login) {
         this.login = login;
     }
-
+    public String getTalkto() {
+        return talkto;
+    }
     @Override
     public void actionPerformed(ActionEvent e) {
         String name = e.getActionCommand();
@@ -43,6 +49,8 @@ public class ClientListener implements ActionListener {
                     login.loginOK();
                     login.menu();
                     alluserlist = client.receiveUserlist();
+                    String username = client.receiveMessage();
+                    client.setName(username);
                     for (String s: alluserlist) {
                         System.out.println(s);
                     }
@@ -82,7 +90,7 @@ public class ClientListener implements ActionListener {
 
         }
         else if("公共聊天室".equals(name)){
-            login.publicChat(alluserlist);
+            login.publicChat(client.getName(), alluserlist);
             Thread t = new ReceiveM(client,login);
             t.start();
         }
@@ -95,6 +103,27 @@ public class ClientListener implements ActionListener {
                 ioException.printStackTrace();
             }
             login.getJta2().setText("");
+        }
+        else if("发起私聊".equals(name)){
+            talkto = login.getList().getSelectedValue();
+            login.privateChat(talkto);
+        }
+        else if("发送私聊".equals(name)){
+            String updated;
+            String text = login.getPrivateMessage().getText();
+            String message = "PRIVATE/"+login.getPrivateTarget()+"/"+text;
+            System.out.println("私聊信息为 "+message);
+            try {
+                client.sendMessage(message);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+            //清除输入的内容
+            login.getPrivateMessage().setText("");
+            String origin = login.getPrivateContent().getText();
+
+            updated = origin+"你说:"+text;
+            login.getPrivateContent().setText(updated);
         }
     }
 }

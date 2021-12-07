@@ -3,11 +3,13 @@ package WirChat.WirChatClient;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
 
 public class MyPopupMenu extends JPopupMenu {
     public JPopupMenu jpu;
-    MyPopupMenu(){
+    public ActionListener action;
+    MyPopupMenu(ActionListener action){
         jpu = new JPopupMenu();
         // Create the popup menu items
         JMenuItem jmiAdd = new JMenuItem("添加好友");
@@ -18,6 +20,9 @@ public class MyPopupMenu extends JPopupMenu {
         jpu.add(jmiAdd);
         jpu.addSeparator();
         jpu.add(jmiPrivate);
+
+        jmiAdd.addActionListener(action);
+        jmiPrivate.addActionListener(action);
 
     }
     }

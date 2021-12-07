@@ -68,10 +68,10 @@ public class WCServer {
                 pw.flush();
             }
         }
-        //给在线的人发
+        //给在线的人发 根据id找socket
         void sendMessageToPrivate(String message,String target) throws IOException {
             if (userlist.get(target)==null){
-                System.out.println("该用户不存在");
+                System.out.println("找不到该在线用户");
             }else {
                 PrintWriter pw = new PrintWriter(userlist.get(target).getOutputStream());
                 pw.println(message);
@@ -79,14 +79,14 @@ public class WCServer {
                 pw.flush();
             }
         }
-        void sendObject(Object o) throws IOException {
-            for (Socket s:socketlist){
+        void sendObject(Object o,Socket s) throws IOException {
+
                 ois = new ObjectInputStream(s.getInputStream());
                 oos = new ObjectOutputStream(s.getOutputStream());
                 System.out.println("列表发送成功");
                 oos.writeObject(o);
                 oos.flush();
-            }
+
         }
 
 
@@ -289,7 +289,8 @@ public class WCServer {
                                 //Thread.sleep(100);
                                 userlist.put(id,socket);
                                 sendMessageToPrivate("登录成功！", id);
-                                sendObject(namelist);
+                                sendObject(namelist,socket);
+                                sendMessageToPrivate(idToName(id),id);
 
                             }
                         }
@@ -309,21 +310,29 @@ public class WCServer {
                             //根据target 再找id
                             String target = s[1];
                             String content = s[2];
+                            System.out.println("得到的名字是："+target);
                             NmAndId = queryNmandId();
+                            for (String name:NmAndId.keySet()) {
+                                System.out.print(name);
+                            }
                             String id = NmAndId.get(target);
+                            System.out.println(id);
                             if (id == null) {
                                 System.out.println("找不到该用户");
                             } else {
+                                content = "PRIVATE/"+idToName(id)+"/"+content;
                                 //System.out.println(s[1]);
                                 //System.out.println(s[2]);
-                                sendMessageToPrivate(content, target);
+                                sendMessageToPrivate(content, id);
                             }
                         } else if (str.startsWith("PUBLIC/")) {
                             String[] s = str.split("/");
                             String id = s[1];
                             String content = s[2];
                             String name = idToName(id);
-                            sendMessageToAllClient(name+"说："+content);
+                            content = name+"说："+content;
+                            content = "PUBLIC/"+content;
+                            sendMessageToAllClient(content);
                             System.out.println(id+" 群发消息：" + content);
                         }
                     }if (str==null){
