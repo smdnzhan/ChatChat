@@ -23,7 +23,8 @@ public class WCServer {
 
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
-
+    private OutputStream os;
+    private InputStream is;
     private Connection connection = null;
     private PreparedStatement prestatement = null;
     private ResultSet resultSet = null;
@@ -51,6 +52,8 @@ public class WCServer {
             socketlist.add(s);
             Thread t = new Thread(new SeverThread(s));
             serverThreadslist.put(s,t);
+            os = s.getOutputStream();
+            is = s.getInputStream();
             t.start();
         }
     }
@@ -60,23 +63,25 @@ public class WCServer {
             this.socket = socket;
         }
 
+
         //输出文本方法
         void sendMessageToAllClient(String message) throws IOException {
             for (Socket s : socketlist) { // 循环集合中所有的客户端连接
-                PrintWriter pw = new PrintWriter(s.getOutputStream() ); // 创建输出流
-                pw.println(message ); // 输入写入文本
-                pw.flush();
+                DataOutputStream dos = new DataOutputStream(s.getOutputStream()); // 创建输出流
+                dos.writeUTF(message ); // 输入写入文本
+                dos.flush();
             }
+            System.out.println("群发了消息："+message);
         }
         //给在线的人发 根据id找socket
         void sendMessageToPrivate(String message,String target) throws IOException {
             if (userlist.get(target)==null){
                 System.out.println("找不到该在线用户");
             }else {
-                PrintWriter pw = new PrintWriter(userlist.get(target).getOutputStream());
-                pw.println(message);
+                DataOutputStream dos = new DataOutputStream(userlist.get(target).getOutputStream());
+                dos.writeUTF(message);
                 System.out.println("发送私聊信息给:"+target+" "+message);
-                pw.flush();
+                dos.flush();
             }
         }
         void sendObject(Object o,Socket s) throws IOException {
@@ -210,7 +215,13 @@ public class WCServer {
             return list;
         }
 
-
+        void sendByte(int i,String s) throws IOException {
+            Socket ss = userlist.get(s);
+            DataOutputStream dos = new DataOutputStream(ss.getOutputStream());
+            dos.writeByte(i);
+            dos.flush();
+            System.out.println("向"+s+"发送了字节");
+        }
         void addNewId(String id,String name,String password)  {
             Connection connection = null;
             PreparedStatement prestatement = null;
@@ -243,100 +254,141 @@ public class WCServer {
         }
         @Override
         public void run() {
-            BufferedReader buf = null;
+            DataInputStream dis = null;
+            DataOutputStream dos = null;
             try {
-                buf = new BufferedReader( new InputStreamReader(socket.getInputStream()));
+                is = socket.getInputStream();
+                dis = new DataInputStream(is);
+                //dos = new DataOutputStream(os);
                 while (true) {
-                    String str = buf.readLine();
-                    if (str != null) {
-                        //1.注册 格式为 REGISTER/ID/NAME/PASSWORD
-                        if (str.startsWith("REGISTER/")) {
-                            String[] s = str.split("/");
-                            String id = s[1];
-                            String name = s[2];
-                            String password = s[3];
+                    //监听字节消息头
+                    byte b = dis.readByte();
+                    System.out.println("b的值为；"+b);
+                    switch (b) {
+                        //1.注册 格式为 REGISTER/ID/NAME/PASSWORD 1/ID/NAME/PASSWORD
+                        case 1:
+                            String id = dis.readUTF();
+                            String name = dis.readUTF();
+                            String password = dis.readUTF();
                             idlist = queryIds();
                             if (idlist.contains(id)) {
+                                //feedback : 1/content
                                 userlist.put(id, socket);
+                                sendByte(1,id);
                                 sendMessageToPrivate("该账号已被注册", id);
                                 userlist.remove(id);
                                 shutdown();
                             } else {
                                 //userlist.put(id, socket);
-                                addNewId(id,name,password);
+                                addNewId(id, name, password);
                                 System.out.println("有一个用户注册成功！");
                                 System.out.println("已注册用户数量:" + idlist.size());
                                 if (idlist.contains(id)) {
                                     //userlist.put(id, socket);
+                                    sendByte(1,id);
                                     sendMessageToPrivate("注册成功！", id);
                                     //userlist.remove(id);
                                     //shutdown();
                                 }
                             }
-                        } else if (str.startsWith("LOGIN")) {
-                            String[] s = str.split("/");
-                            String id = s[1];
-                            String password = s[2];
+                            break;
+                            //登录 2/id/password
+                        case 2:
+                            String log_id = dis.readUTF();
+                            String log_pass = dis.readUTF();
                             idlist = queryIds();
                             idAndPsswrd = queryIdAndPsswrd();
                             namelist = queryNames();
-                            if (!idlist.contains(id) || !idAndPsswrd.get(id).equals(password)) {
+                            if (!idlist.contains(log_id) || !idAndPsswrd.get(log_id).equals(log_pass)) {
                                 System.out.println("登录失败");
-                                userlist.put(id,socket);
-                                sendMessageToPrivate("登录失败", id);
-                                userlist.remove(id);
+                                userlist.put(log_id, socket);
+                                sendByte(2,log_id);
+                                sendMessageToPrivate("登录失败", log_id);
+                                userlist.remove(log_id);
                             } else {
                                 //Thread.sleep(100);
-                                userlist.put(id,socket);
-                                sendMessageToPrivate("登录成功！", id);
-                                sendObject(namelist,socket);
-                                sendMessageToPrivate(idToName(id),id);
+                                userlist.put(log_id, socket);
+                                sendByte(2,log_id);
+                                sendMessageToPrivate("登录成功！", log_id);
+                                sendObject(namelist, socket);
+                                sendMessageToPrivate(idToName(log_id), log_id);
 
                             }
-                        }
-                        //2.退出
-                        else if (str.equals("LEAVE")) {
+                            break;
+                        //退出
+                            /*
+                        case 23:{
                             System.out.println("服务器侦测到离开信号");
                             socketlist.remove(socket); // 集合删除此客户端连接
                             // 服务器向所有客户端接口发出退出通知
                             sendMessageToAllClient("一个用户已退出聊天室");
                             //socket.close();
                             serverThreadslist.remove(socket);
-                            System.out.println("断开连接");
-                        }
-                        //PRIVATE/NAME/CONTENT
-                        else if (str.startsWith("PRIVATE/")) {
-                            String[] s = str.split("/");
+                            System.out.println("断开连接");}
+
+
+                             */
+                        //PRIVATE/NAME/CONTENT 1/SENDER/RECEIVER/CONTENT
+                        case 3:
                             //根据target 再找id
-                            String target = s[1];
-                            String content = s[2];
-                            System.out.println("得到的名字是："+target);
+                            String sender = dis.readUTF();
+                            String receiver = dis.readUTF();
+                            String content =dis.readUTF();
+                            System.out.println("私聊发送者为：" + sender+"接收者为："+receiver);
                             NmAndId = queryNmandId();
-                            for (String name:NmAndId.keySet()) {
-                                System.out.print(name);
-                            }
-                            String id = NmAndId.get(target);
-                            System.out.println(id);
-                            if (id == null) {
+
+                            String rec_id = NmAndId.get(receiver);
+                            System.out.println("接收者id:"+rec_id);
+                            if (rec_id == null) {
                                 System.out.println("找不到该用户");
+                                sendByte(3,rec_id);
+                                String sen_id = NmAndId.get(sender);
+                                sendMessageToPrivate("找不到该用户！",sen_id);
                             } else {
-                                content = "PRIVATE/"+idToName(id)+"/"+content;
-                                //System.out.println(s[1]);
-                                //System.out.println(s[2]);
-                                sendMessageToPrivate(content, id);
+                                sendByte(3,rec_id);
+                                sendMessageToPrivate(sender,rec_id);
+                                sendMessageToPrivate(content, rec_id);
+                                System.out.println("一条私聊消息已经被转发");
                             }
-                        } else if (str.startsWith("PUBLIC/")) {
-                            String[] s = str.split("/");
-                            String id = s[1];
-                            String content = s[2];
-                            String name = idToName(id);
-                            content = name+"说："+content;
-                            content = "PUBLIC/"+content;
-                            sendMessageToAllClient(content);
-                            System.out.println(id+" 群发消息：" + content);
-                        }
-                    }if (str==null){
-                      System.out.println("目前socket个数:"+socketlist.size());
+                            break;
+                            //群发   4/sender/content 消息头+名字+内容
+                        case 4:
+                            String pblc_sender = dis.readUTF();
+                            String pblc_content = dis.readUTF();
+
+                            content = pblc_sender + "说：" + pblc_content;
+                            for (Socket s :socketlist) {
+                                DataOutputStream dops = new DataOutputStream(s.getOutputStream());
+                                dops.writeByte(4);
+                                dops.writeUTF(content);
+                                dops.flush();
+                            }
+                            System.out.println(pblc_sender + " 群发消息：" + content);
+                            break;
+
+                        case 5:
+                            //接收字节
+                            try {
+                                for (Socket s:socketlist) {
+                                    if (s!=socket){
+                                    dos = new DataOutputStream(s.getOutputStream());
+                                    int x1 = dis.readInt();
+                                    int y1 = dis.readInt();
+                                    System.out.println("正在监听");
+                                    System.out.println("x1:" + x1 + "y1: " + y1);
+                                    dos.writeByte(5);
+                                    dos.writeInt(x1);
+                                    dos.writeInt(y1);
+                                    dos.flush();
+                                    //记得flush
+                                    }
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            break;
+
+
                     }
                 }
             } catch (Exception e) {

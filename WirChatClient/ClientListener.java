@@ -1,5 +1,7 @@
 package WirChat.WirChatClient;
 
+import WirChat.WirChatSever.ByteThread;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -9,6 +11,7 @@ public class ClientListener implements ActionListener {
     private Login login;
     private WCClient client;
     private LinkedList<String> alluserlist;
+    private ReceiveM t;
 
 
 
@@ -31,33 +34,34 @@ public class ClientListener implements ActionListener {
                 client = new WCClient("127.0.0.1",8888);
                 String id = login.getLogin_id().getText();
                 String password = login.getLogin_password().getText();
-
                 //包装成识别格式
-                String message = "LOGIN/"+id+"/"+password;
                 try {
-                    client.sendMessage(message);
+                    client.sendByte(2);
+                    client.sendMessage(id);
+                    client.sendMessage(password);
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
-                String str = client.receiveMessage();
-                //System.out.println(client.receiveMessage());
-                if (str.equals("登录失败")){ //??
-                    login.loginFail();
-                }if (str.equals("登录成功！")){
-                    System.out.println("在执行登录成功语句");
-                    client.setId(id);
-                    login.loginOK();
-                    login.menu();
-                    alluserlist = client.receiveUserlist();
-                    String username = client.receiveMessage();
-                    client.setName(username);
-                    for (String s: alluserlist) {
-                        System.out.println(s);
+                byte b = client.dis.readByte();
+                if (b==2){
+                    String feedback = client.receiveMessage();
+                    System.out.println("feedback:" + feedback);
+                    if (feedback.equals("登录失败")) { //??
+                        login.loginFail();
+                    }
+                    if (feedback.startsWith("登录成功！")) {
+                        System.out.println("在执行登录成功语句");
+                        client.setId(id);
+                        login.loginOK();
+                        login.menu();
+                        alluserlist = client.receiveUserlist();
+                        String username = client.receiveMessage();
+                        client.setName(username);
                     }
                 }
-            } catch (Exception exception) {
-                exception.printStackTrace();
-            }
+            } catch (Exception ioException){
+                    ioException.printStackTrace();
+                }
         }
         else if("完成".equals(name)) {
             //连接服务器，发送注册信息
@@ -68,37 +72,47 @@ public class ClientListener implements ActionListener {
                 String username = login.getRegistername().getText();
                 String password = login.getRegisterpassword().getText();
                 //包装成识别格式
-                String message = "REGISTER/"+id+"/"+username+"/"+password;
+
                 client.setId(id);
                 client.setName(username);
                 client.setPassword(password);
                 try {
-                    client.sendMessage(message);
+                    client.sendByte(1);
+                    client.sendMessage(id);
+                    client.sendMessage(username);
+                    client.sendMessage(password);
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
-                //注册流程结束 就关闭Socket
-                if (client.receiveMessage().startsWith("该账号已被注册")){ //??
+                byte b = client.dis.readByte();
+                if (b==1){
+                //获得服务器反馈
+                String feedback = client.receiveMessage();
+                if (feedback.startsWith("该账号已被注册")){ //??
                     login.registerFail();
                     client.close();
                 }else {login.registerOk();
                         client.close();
                 }
-            } catch (Exception exception) {
+            } }catch (Exception exception) {
                 exception.printStackTrace();
             }
 
         }
         else if("公共聊天室".equals(name)){
+
             login.publicChat(client.getName(), alluserlist);
-            Thread t = new ReceiveM(client,login);
+            t = new ReceiveM(client,login);
+
             t.start();
         }
+        //群聊
         else if("发送消息".equals(name)){
             String text = login.getJta2().getText();
-            String message = "PUBLIC/"+client.getId()+"/"+text;
             try {
-                client.sendMessage(message);
+            client.sendByte(4);
+            client.sendMessage(client.getName());
+            client.sendMessage(text);
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
@@ -111,19 +125,34 @@ public class ClientListener implements ActionListener {
         else if("发送私聊".equals(name)){
             String updated;
             String text = login.getPrivateMessage().getText();
-            String message = "PRIVATE/"+login.getPrivateTarget()+"/"+text;
-            System.out.println("私聊信息为 "+message);
             try {
-                client.sendMessage(message);
+                client.sendByte(3);
+                client.sendMessage(client.getName());
+                client.sendMessage(talkto);
+                client.sendMessage(text);
+                System.out.println("私聊信息发送成功");
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
             //清除输入的内容
             login.getPrivateMessage().setText("");
             String origin = login.getPrivateContent().getText();
-
             updated = origin+"你说:"+text;
             login.getPrivateContent().setText(updated);
+        }
+        else if("你画我猜".equals(name)) {
+            boolean flag = login.getMml().isFlag();
+            if (flag) {
+                login.getMml().setFlag(false);
+            } else {
+                try {
+                    login.getMml().setClient(client);
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+                login.getMml().setFlag(true);
+
+            }
         }
     }
 }

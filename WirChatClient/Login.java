@@ -22,6 +22,11 @@ public class Login {
     private JList<String> list;
     private String privateTarget;
 
+    public MyMouseListener getMml() {
+        return mml;
+    }
+
+    private MyMouseListener mml;
 
 
 
@@ -186,6 +191,7 @@ public class Login {
 
     public void publicChat(String username, LinkedList<String>idlist){
         JFrame jf = new JFrame();
+
         // 像素>分辨率
         jf.setSize(650, 1000);
         jf.setTitle("聊天室 "+username);
@@ -204,6 +210,11 @@ public class Login {
         jta.setBackground(Color.WHITE);    //设置按钮背景色
         jta.setEditable(false);
         jf.add(jta);
+        mml = new MyMouseListener(jta);
+        jta.addMouseMotionListener(mml);
+        jta.addMouseListener(mml);
+
+
 
         int len = idlist.size();
         String[] sbf = new String[len];
@@ -235,7 +246,7 @@ public class Login {
         jbu2.addActionListener(action);
         jf.add(jbu2);
 
-        JButton jbu3 = new javax.swing.JButton("视频聊天");
+        JButton jbu3 = new javax.swing.JButton("你画我猜");
         jbu3.setPreferredSize(new Dimension(150,50));
         jbu3.setFont(f);
         jbu3.addActionListener(action);
@@ -255,6 +266,9 @@ public class Login {
         // 设置退出进程
         jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         jf.setVisible(true);
+
+        Graphics g = jta.getGraphics();
+        mml.setG(g);
 
     }
 
@@ -313,6 +327,7 @@ public class Login {
         // 设置退出进程
         jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         jf.setVisible(true);
+
     }
 
 
