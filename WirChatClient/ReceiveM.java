@@ -1,6 +1,7 @@
 package WirChat.WirChatClient;
 
 
+import WirChat.WirChatSever.VideoServer;
 import sun.awt.windows.WPrinterJob;
 
 import java.awt.*;
@@ -58,6 +59,14 @@ public class ReceiveM extends Thread{
                     break;
                 }
 
+                case 7:{
+                    VideoServer vs = new VideoServer();
+                    vs.run();
+                }
+                case 8:{
+                    VideoClient vc = new VideoClient();
+                    vc.run();
+                }
         }
     }
     }

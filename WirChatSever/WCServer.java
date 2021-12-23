@@ -1,5 +1,6 @@
 package WirChat.WirChatSever;
 
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -265,7 +266,7 @@ public class WCServer {
                     byte b = dis.readByte();
                     System.out.println("b的值为；"+b);
                     switch (b) {
-                        //1.注册 格式为 REGISTER/ID/NAME/PASSWORD 1/ID/NAME/PASSWORD
+                        //1.注册 格式为  1/ID/NAME/PASSWORD
                         case 1:
                             String id = dis.readUTF();
                             String name = dis.readUTF();
@@ -328,7 +329,7 @@ public class WCServer {
 
 
                              */
-                        //PRIVATE/NAME/CONTENT 1/SENDER/RECEIVER/CONTENT
+                        // 1/SENDER/RECEIVER/CONTENT
                         case 3:
                             //根据target 再找id
                             String sender = dis.readUTF();
@@ -355,7 +356,6 @@ public class WCServer {
                         case 4:
                             String pblc_sender = dis.readUTF();
                             String pblc_content = dis.readUTF();
-
                             content = pblc_sender + "说：" + pblc_content;
                             for (Socket s :socketlist) {
                                 DataOutputStream dops = new DataOutputStream(s.getOutputStream());
@@ -387,8 +387,18 @@ public class WCServer {
                                 e.printStackTrace();
                             }
                             break;
+                        //发送视频
+                        case 6:
 
-
+                            String Sender = dis.readUTF();
+                            String rec = dis.readUTF();
+                            NmAndId= queryNmandId();
+                            String recID = NmAndId.get(rec);
+                            String senID = NmAndId.get(Sender);
+                            //7收 8发
+                            sendByte(7,recID);
+                            sendByte(8,senID);
+                            break;
                     }
                 }
             } catch (Exception e) {

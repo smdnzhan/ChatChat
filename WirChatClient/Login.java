@@ -1,8 +1,12 @@
 package WirChat.WirChatClient;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -21,6 +25,9 @@ public class Login {
     private JTextArea privateMessage;
     private JList<String> list;
     private String privateTarget;
+    ArrayList<Image> emojis;
+    JButton emojibtt;
+    EmojiMenu em;
 
     public MyMouseListener getMml() {
         return mml;
@@ -30,8 +37,26 @@ public class Login {
 
 
 
+    public Login(){
+        loadEmojis();
 
+    }
 
+    void loadEmojis()  {
+        emojis = new ArrayList<>();
+        for (int i = 0;i<9;i++){
+            File file = new File("D:\\java\\JavaJAVA\\src\\WirChat\\Emoji\\"+"emoji"+i+".jpg");
+            Image img = null;
+            try {
+                img = ImageIO.read(file);
+                Image scaled = img.getScaledInstance(75,50,Image.SCALE_DEFAULT);
+                emojis.add(scaled);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
     // 显示登录界面的方法
     public void showUI() {
         // 创建窗体对象
@@ -187,7 +212,7 @@ public class Login {
     }
     //LinkedList<String> idlist,, HashMap<String,String> namelist
 
-
+    public void emojiChose(){}
 
     public void publicChat(String username, LinkedList<String>idlist){
         JFrame jf = new JFrame();
@@ -201,7 +226,7 @@ public class Login {
 
         FlowLayout flow = new FlowLayout(FlowLayout.CENTER,10,10);
         jf.setLayout(flow);
-        Font f=new Font("宋体",Font.PLAIN,22);
+        Font f=new Font("宋体",Font.PLAIN,18);
 
         jta=new JTextArea(25,35);
         jta.setLineWrap(true);    //设置文本域中的文本为自动换行
@@ -235,23 +260,34 @@ public class Login {
 
 
         JButton jbu = new javax.swing.JButton("发送消息");
-        jbu.setPreferredSize(new Dimension(150,50));
+        jbu.setPreferredSize(new Dimension(120,50));
         jbu.setFont(f);
         jbu.addActionListener(action);
         jf.add(jbu);
 
         JButton jbu2 = new javax.swing.JButton("发送图片");
-        jbu2.setPreferredSize(new Dimension(150,50));
+        jbu2.setPreferredSize(new Dimension(120,50));
         jbu2.setFont(f);
         jbu2.addActionListener(action);
         jf.add(jbu2);
 
         JButton jbu3 = new javax.swing.JButton("你画我猜");
-        jbu3.setPreferredSize(new Dimension(150,50));
+        jbu3.setPreferredSize(new Dimension(120,50));
         jbu3.setFont(f);
         jbu3.addActionListener(action);
         jf.add(jbu3);
 
+        emojibtt= new JButton("表情包");
+        emojibtt.setPreferredSize(new Dimension(120,50));
+        emojibtt.setFont(f);
+        emojibtt.addActionListener(action);
+        jf.add(emojibtt);
+
+        JListListener jll = new JListListener();
+        em = new EmojiMenu(emojis,emojibtt,jll);
+        jll.setList(em.jList);
+        jll.setLogin(this);
+        jll.setImglist(emojis);
 
         jta2=new JTextArea(10,50);
         JTextListener jtl = new JTextListener(jta2,"请输入内容");
@@ -263,6 +299,7 @@ public class Login {
         jf.add(jta2);
 
 
+
         // 设置退出进程
         jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         jf.setVisible(true);
@@ -270,6 +307,7 @@ public class Login {
         Graphics g = jta.getGraphics();
         mml.setG(g);
 
+       ;
     }
 
     public void privateChat(String targetname){
@@ -327,7 +365,6 @@ public class Login {
         // 设置退出进程
         jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         jf.setVisible(true);
-
     }
 
 
@@ -338,7 +375,9 @@ public class Login {
         Login lo = new Login();
         //lo.privateChat("张三");
         lo.showUI();
-        //lo.publicChat(list);
+        //LinkedList<String> list = new LinkedList<>();
+
+        //lo.publicChat("我",list);
 
     }
 

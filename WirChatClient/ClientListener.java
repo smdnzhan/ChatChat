@@ -2,9 +2,13 @@ package WirChat.WirChatClient;
 
 import WirChat.WirChatSever.ByteThread;
 
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 public class ClientListener implements ActionListener {
@@ -12,6 +16,7 @@ public class ClientListener implements ActionListener {
     private WCClient client;
     private LinkedList<String> alluserlist;
     private ReceiveM t;
+    ArrayList<Image> imglist;
 
 
 
@@ -19,6 +24,7 @@ public class ClientListener implements ActionListener {
     //登入界面
     public ClientListener(Login login) {
         this.login = login;
+
     }
     public String getTalkto() {
         return talkto;
@@ -103,8 +109,8 @@ public class ClientListener implements ActionListener {
 
             login.publicChat(client.getName(), alluserlist);
             t = new ReceiveM(client,login);
-
             t.start();
+
         }
         //群聊
         else if("发送消息".equals(name)){
@@ -121,6 +127,7 @@ public class ClientListener implements ActionListener {
         else if("发起私聊".equals(name)){
             talkto = login.getList().getSelectedValue();
             login.privateChat(talkto);
+
         }
         else if("发送私聊".equals(name)){
             String updated;
@@ -140,6 +147,16 @@ public class ClientListener implements ActionListener {
             updated = origin+"你说:"+text;
             login.getPrivateContent().setText(updated);
         }
+
+        else if("视频私聊".equals(name)){
+            try {
+                client.sendByte(6);
+                client.sendMessage(client.getName());
+                client.sendMessage(talkto);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        }
         else if("你画我猜".equals(name)) {
             boolean flag = login.getMml().isFlag();
             if (flag) {
@@ -150,9 +167,14 @@ public class ClientListener implements ActionListener {
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
-                login.getMml().setFlag(true);
-
+                login.getMml().setFlag(!login.getMml().isFlag());
             }
+        }
+        else if("表情包".equals(name)){
+            boolean flag = login.em.flag;
+            login.em.setFlag(!flag);
+            login.em.setVisible(!flag);
+            System.out.println("flag:"+flag);
         }
     }
 }
