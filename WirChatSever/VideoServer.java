@@ -1,7 +1,9 @@
 package WirChat.WirChatSever;
 
+import WirChat.WirChatClient.VideoClient;
 import WirChat.WirChatClient.VideoThread;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -68,27 +70,25 @@ public class VideoServer extends Thread{
         System.out.println("res:"+res);
         return res;
     }
+
+    // convert byte[] to BufferedImage
+    public static BufferedImage toBufferedImage(byte[] bytes)
+            throws IOException {
+
+        InputStream is = new ByteArrayInputStream(bytes);
+        BufferedImage bi = ImageIO.read(is);
+        return bi;
+
+    }
     @Override
     public void run() {
-
         while (true){
             BufferedImage image;
             try {
-                //w是宽 h 是高
-                int w = readInt(dis);
-                int h = readInt(dis);
-                image = new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
-                Graphics g = image.getGraphics();
-                System.out.println("收到的长和宽是："+w+" "+h);
-                for (int i = 0; i < h; i ++) {
-                    for(int j = 0 ; j < w ; j ++ ) {
-                        int a = readInt(dis);
-                        Color  color=new Color(a);
-                        g.setColor(color);
-                        g.drawLine(j, i, j, i);
-
-                    }
-                }
+                int i = readInt(dis);
+                byte[] b = new byte[i];
+                dis.read(b);
+                image = toBufferedImage(b);
                 gg.drawImage(image,0,0,null);
             } catch (IOException e) {
                 // TODO Auto-generated catch block

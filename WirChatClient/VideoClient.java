@@ -4,6 +4,8 @@ import WirChat.WirChatSever.VideoServer;
 import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamPanel;
 import com.github.sarxos.webcam.WebcamResolution;
+import com.github.sarxos.webcam.util.ImageUtils;
+import com.sun.imageio.plugins.common.ImageUtil;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -69,35 +71,33 @@ public class VideoClient extends Thread{
             BufferedImage image = webcam.getImage();
             //将照通过网络发送
             trans(image);
-            try {
-                ImageIO.write(image,"jpg",dos);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
         }
     }
 
-    private void trans(BufferedImage image) {
-        int w = image.getWidth(null);
-        int h = image.getHeight(null);
+    private void trans(BufferedImage image)  {
+        byte []b = new byte[]{};
         try {
-            VideoServer.writeInt(dos,w);
-            VideoServer.writeInt(dos,h);
-        } catch (IOException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+            b = toByteArray(image,"jpg");
+            int len = b.length;
+            //先发数组长度
+            VideoServer.writeInt(dos,len);
+            //再发数组
+            dos.write(b);
+            System.out.println(b.length);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        for (int i = 0; i < h; i ++) {
-            for(int j = 0 ; j < w ; j ++ ) {
-                int a= image.getRGB(j,i);
-                try {
-                    VideoServer.writeInt(dos,a);
 
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-        }
     }
+    // bufferedimage -> byte[]
+    public static byte[] toByteArray(BufferedImage bi, String format)
+            throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(bi, format, baos);
+        return baos.toByteArray();
+
+    }
+
+
 }
