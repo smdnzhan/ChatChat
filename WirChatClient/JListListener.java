@@ -3,10 +3,7 @@ package WirChat.WirChatClient;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.text.Caret;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 public class JListListener implements ListSelectionListener {
@@ -38,15 +35,16 @@ public class JListListener implements ListSelectionListener {
         this.list = list;
     }
 
-    JListListener() {
+    public JListListener() {
 
     }
     @Override
     public void valueChanged(ListSelectionEvent e) {
         if (e.getValueIsAdjusting()){
        int index = list.getSelectedIndex();
-       JTextArea jta = login.getJta2();
-       jta.append("%%"+index+"%%");
+       JTextPane jta = login.getJta2();
+       String s1 = jta.getText();
+       jta.setText(s1+"##"+index+"##");
     }}
     }
 

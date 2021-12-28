@@ -9,7 +9,7 @@ public class MyMouseAdapter extends MouseAdapter {
     JList<String> list;
     JPopupMenu jpm;
 
-    MyMouseAdapter(JList<String> list, JPopupMenu jpm){
+    public MyMouseAdapter(JList<String> list, JPopupMenu jpm){
         this.list = list;
         this.jpm = jpm;
     }

@@ -20,25 +20,18 @@ public class EmojiMenu extends JPopupMenu {
     boolean flag = false;
 
 
-    EmojiMenu(ArrayList<Image> list,JButton jb,JListListener jll){
+    public EmojiMenu(ArrayList<Image> list, JListListener jll){
         this.list = list;
         DefaultListModel<ImageIcon> model = new DefaultListModel<>();
         for (Image img:list) {
             ImageIcon imgg = new ImageIcon(img);
             model.addElement(imgg);
         }
-        jList = new JList(model);
+        jList = new JList<ImageIcon>(model);
         jList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
         jList.setVisibleRowCount(2);
-
         this.add(jList);
-
-        Point p = jb.getLocation();
-        int x = p.x;
-        int y = p.y;
-        System.out.println("x:"+x+" y:"+y);
         jList.addListSelectionListener(jll);
-        this.setLocation(600,600);
 
     }
 

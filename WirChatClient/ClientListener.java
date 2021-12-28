@@ -171,10 +171,6 @@ public class ClientListener implements ActionListener {
             }
         }
         else if("表情包".equals(name)){
-            boolean flag = login.em.flag;
-            login.em.setFlag(!flag);
-            login.em.setVisible(!flag);
-            System.out.println("flag:"+flag);
         }
     }
 }

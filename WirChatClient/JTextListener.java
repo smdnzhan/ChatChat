@@ -7,9 +7,9 @@ import java.awt.event.FocusListener;
 
 public class JTextListener implements FocusListener {
     private String hintText;          //提示文字
-    private JTextArea textField;
+    private JTextPane textField;
 
-    public JTextListener(JTextArea area,String hintText) {
+    public JTextListener(JTextPane area,String hintText) {
         this.textField=area;
         this.hintText=hintText;
         textField.setText(hintText);   //默认直接显示

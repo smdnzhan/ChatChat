@@ -58,6 +58,8 @@ public class WCClient {
         list = (LinkedList<String>) ois.readObject();
         return list;
     }
+
+
     final String receiveMessage() {
         try {
             String str = dis.readUTF();

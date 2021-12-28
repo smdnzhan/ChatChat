@@ -4,8 +4,7 @@ import WirChat.WirChatSever.VideoServer;
 import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamPanel;
 import com.github.sarxos.webcam.WebcamResolution;
-import com.github.sarxos.webcam.util.ImageUtils;
-import com.sun.imageio.plugins.common.ImageUtil;
+
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -15,7 +14,6 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class VideoClient extends Thread{
     Socket server;

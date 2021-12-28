@@ -2,7 +2,11 @@ package WirChat.WirChatClient;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -19,13 +23,13 @@ public class Login {
     private JTextField registerpassword;
     private JTextField login_id;
     private JTextField login_password;
-    private JTextArea jta;
-    private JTextArea jta2;
+    private JTextPane jta;
+    private JTextPane jta2;
     private JTextArea privateContent;
     private JTextArea privateMessage;
     private JList<String> list;
     private String privateTarget;
-    ArrayList<Image> emojis;
+    public ArrayList<Image> emojis;
     JButton emojibtt;
     EmojiMenu em;
 
@@ -45,7 +49,7 @@ public class Login {
     void loadEmojis()  {
         emojis = new ArrayList<>();
         for (int i = 0;i<9;i++){
-            File file = new File("D:\\java\\JavaJAVA\\src\\WirChat\\Emoji\\"+"emoji"+i+".jpg");
+            File file = new File("D:\\java\\JavaJAVA\\src\\WirChat\\Emoji\\"+i+".png");
             Image img = null;
             try {
                 img = ImageIO.read(file);
@@ -214,7 +218,12 @@ public class Login {
 
     public void emojiChose(){}
 
-    public void publicChat(String username, LinkedList<String>idlist){
+    public void publicChat(String username,LinkedList<String> idlist){
+        SimpleAttributeSet attributeSet = new SimpleAttributeSet();
+        StyleConstants.setBold(attributeSet, false);
+        StyleConstants.setFontSize(attributeSet, 20);
+        StyleConstants.setFontFamily(attributeSet, "宋体");
+
         JFrame jf = new JFrame();
 
         // 像素>分辨率
@@ -228,13 +237,24 @@ public class Login {
         jf.setLayout(flow);
         Font f=new Font("宋体",Font.PLAIN,18);
 
-        jta=new JTextArea(25,35);
-        jta.setLineWrap(true);    //设置文本域中的文本为自动换行
+
+        jta =new JTextPane();
+        JScrollPane jsp = new JScrollPane(jta);
+        jta.setCharacterAttributes(attributeSet,true);
         jta.setForeground(Color.BLACK);    //设置组件的背景色
         jta.setFont(new Font("楷体",Font.PLAIN,20));    //修改字体样式
         jta.setBackground(Color.WHITE);    //设置按钮背景色
-        jta.setEditable(false);
-        jf.add(jta);
+        jta.setPreferredSize(new Dimension(300,600));
+
+        jsp.setViewportView(jta);
+
+        jsp.setHorizontalScrollBarPolicy(32);
+        jsp.setVerticalScrollBarPolicy(22);
+        jf.getContentPane().add(jsp);
+
+
+
+
         mml = new MyMouseListener(jta);
         jta.addMouseMotionListener(mml);
         jta.addMouseListener(mml);
@@ -277,26 +297,35 @@ public class Login {
         jbu3.addActionListener(action);
         jf.add(jbu3);
 
-        emojibtt= new JButton("表情包");
+        emojibtt= new JButton("表情");
         emojibtt.setPreferredSize(new Dimension(120,50));
         emojibtt.setFont(f);
-        emojibtt.addActionListener(action);
+        //emojibtt.addActionListener(action);
         jf.add(emojibtt);
-
+        //添加表情菜单
         JListListener jll = new JListListener();
-        em = new EmojiMenu(emojis,emojibtt,jll);
+        em = new EmojiMenu(emojis,jll);
         jll.setList(em.jList);
         jll.setLogin(this);
         jll.setImglist(emojis);
+        emojibtt.setComponentPopupMenu(em);
 
-        jta2=new JTextArea(10,50);
-        JTextListener jtl = new JTextListener(jta2,"请输入内容");
-        jta2.setLineWrap(true);    //设置文本域中的文本为自动换行
+
+        jta2=new JTextPane();
+        JScrollPane jsp2 = new JScrollPane(jta2);
+        jta2.setCharacterAttributes(attributeSet,true);
         jta2.setForeground(Color.BLACK);    //设置组件的背景色
         jta2.setFont(new Font("楷体",Font.PLAIN,20));    //修改字体样式
         jta2.setBackground(Color.WHITE);    //设置按钮背景色
-        jta2.addFocusListener(jtl);
-        jf.add(jta2);
+
+        jta2.setPreferredSize(new Dimension(500,400));
+
+        jsp2.setViewportView(jta2);
+
+        jsp2.setHorizontalScrollBarPolicy(32);
+        jsp2.setVerticalScrollBarPolicy(22);
+        jf.getContentPane().add(jsp2);
+
 
 
 
@@ -397,11 +426,11 @@ public class Login {
 
     public JTextField getLogin_password() { return login_password;}
 
-    public JTextArea getJta2() {
+    public JTextPane getJta2() {
         return jta2;
     }
 
-    public JTextArea getJta() { return jta; }
+    public JTextPane getJta() { return jta; }
 
     public JTextArea getPrivateContent() {
         return privateContent;
